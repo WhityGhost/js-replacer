@@ -24,8 +24,14 @@ After building js-replacer, you can explore its exports at the Node console:
 $ npm i
 $ npm run build
 $ node
-> require('.').replace_js_file()
-Operation completed in 3.8646678s
+> let lib = require('.');
+undefined
+> let txt = lib.read_file_to_string("test-input.txt");
+undefined
+> let res = lib.replace_js_code(txt);
+Operation completed in 2.9162882s
+undefined
+> res
 '\n' +
   '\n' +
   '(()=>{var scy=Object.create;var qKt=Object.defineProperty;var nJp=Object.getOwnPropertyDescriptor;var lcy=Object.getOwnPropertyNames;var ccy=Object.getPrototypeOf,pcy=Object.prototype.hasOwnProperty;var dcy=(e,t,r)=>t in e?qKt(e,t,{enumerable:!0,configurable:!0,writable:!0,value:r}):e[t]=r;var n=(e,t)=>qKt(e,"name",{value:t,configurable:!0}),KYi=(e=>typeof require<"u"?require:typeof Proxy<"u"?new Proxy(e,{get:(t,r)=>(typeof require<"u"?require:t)[r]}):e)(function(e){if(typeof require<"u")return require.apply(this,arguments);t'... 22409606 more characters
