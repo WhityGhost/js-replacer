@@ -5,11 +5,12 @@ extern crate swc_common;
 extern crate regex;
 
 use neon::prelude::*;
+use swc_common::{BytePos, FileName, SourceFile};
+use std::fs;
 use std::io::Write;
 use std::{fs::File, sync::Arc};
-use std::path::Path;
 use std::collections::HashSet;
-use swc_common::{SourceMap, Spanned, source_map::Pos};
+use swc_common::{sync::Lrc, SourceMap, Spanned, source_map::Pos};
 use swc_ecma_parser::{Parser, StringInput, lexer::Lexer, EsSyntax};
 use swc_ecma_ast::*;
 use swc_ecma_visit::{Visit, VisitWith};
@@ -25,21 +26,33 @@ mod this_helper {
 
 #[neon::main]
 fn main(mut cx: ModuleContext) -> NeonResult<()> {
-    cx.export_function("replace_js_file", replace_js_file)?;
+    cx.export_function("replace_js_code", replace_js_code)?;
+    cx.export_function("read_file_to_string", read_file_to_string)?;
     Ok(())
 }
 
-fn replace_js_file(mut cx: FunctionContext) -> JsResult<JsString> {
-    let path = cx.argument::<JsString>(0)?;
-    let path_string = path.value(&mut cx).to_string();
+fn read_file_to_string(mut cx: FunctionContext) -> JsResult<JsString> {
+    let path_prm = cx.argument::<JsString>(0)?;
+    let path_str = path_prm.value(&mut cx).to_string();
+    let contents = fs::read_to_string(path_str)
+        .expect("Error: Unable to read the file.");
+    Ok(cx.string(contents))
+}
 
-    let cm: Arc<SourceMap> = Arc::new(SourceMap::new(Default::default()));
-    let fm = cm
-        .load_file(Path::new(&path_string))
-        .expect("failed to load input.txt");
+fn replace_js_code(mut cx: FunctionContext) -> JsResult<JsString> {
+    let raw_js_prm = cx.argument::<JsString>(0)?;
+    let raw_js_str = raw_js_prm.value(&mut cx).to_string();
+    
+    let source_file = SourceFile::new(
+        FileName::Custom("input.js".into()),
+        false,
+        FileName::Custom("input.js".into()),
+        raw_js_str.clone(),
+        BytePos::from_usize(0)
+    );
+    let rc_source_file = Lrc::new(source_file);
 
-    let string_input = StringInput::from(&*fm);
-    let content = fm.src.to_string();
+    let string_input = StringInput::from(&*rc_source_file);
 
     let lexer = Lexer::new(
         swc_ecma_parser::Syntax::Es(EsSyntax { ..Default::default() }),
@@ -58,7 +71,7 @@ fn replace_js_file(mut cx: FunctionContext) -> JsResult<JsString> {
         Err(err) => panic!("Failed to parse JavaScript code: {:?}", err),
     };
     
-    let _transformed_module = transform_js_module(module, content);
+    let _transformed_module = transform_js_module(module, raw_js_str.clone());
     let end_time = std::time::Instant::now();
     let elapsed_time = end_time.duration_since(start_time);
     println!("Operation completed in {:?}", elapsed_time);
@@ -71,14 +84,6 @@ fn transform_js_module(module: Module, raw: String) -> String {
     loc_visitor.visit_module(&module);
     loc_visitor.commit_replacements();
     let res_raw = loc_visitor.jscode_new;
-    let _file = match File::create("output.txt") {
-        Ok(mut file) => {
-            let _ = file.write_all(res_raw.as_bytes());
-        },
-        Err(e) => {
-            panic!("Error creating file: {}", e);
-        }
-    };
     return res_raw
 }
 
