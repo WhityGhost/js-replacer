@@ -1,0 +1,34 @@
+{
+  "name": "js-replacer",
+  "version": "0.1.0",
+  "description": "A package that replaces neccessary tokens in js code files so it can be used in proxy.",
+  "main": "index.node",
+  "scripts": {
+    "test": "cargo test",
+    "cargo-build": "cargo build --message-format=json > cargo.log",
+    "cross-build": "cross build --message-format=json > cross.log",
+    "postcargo-build": "neon dist < cargo.log",
+    "postcross-build": "neon dist -m /target < cross.log",
+    "debug": "npm run cargo-build --",
+    "build": "npm run cargo-build -- --release",
+    "cross": "npm run cross-build -- --release"
+  },
+  "author": "YT-Gh0st",
+  "license": "ISC",
+  "devDependencies": {
+    "@neon-rs/cli": "0.1.73"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MightyWhityGhost/js-replacer.git"
+  },
+  "keywords": [
+    "javascript",
+    "proxy",
+    "replace-token"
+  ],
+  "bugs": {
+    "url": "https://github.com/MightyWhityGhost/js-replacer/issues"
+  },
+  "homepage": "https://github.com/MightyWhityGhost/js-replacer#readme"
+}
