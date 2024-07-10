@@ -6,7 +6,6 @@ extern crate regex;
 extern crate dprint_swc_ext;
 
 use neon::prelude::*;
-use swc_common::BytePos;
 use std::fs;
 use std::collections::HashSet;
 use swc_common::{Spanned, source_map::Pos};
