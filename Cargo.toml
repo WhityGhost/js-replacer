@@ -13,6 +13,7 @@ crate-type = ["cdylib"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+dprint-swc-ext = "0.17.0"
 neon = "1"
 regex = "1.10.5"
 swc_common = "0.34.3"

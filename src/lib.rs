@@ -3,16 +3,18 @@ extern crate swc_ecma_ast;
 extern crate swc_ecma_visit;
 extern crate swc_common;
 extern crate regex;
+extern crate dprint_swc_ext;
 
 use neon::prelude::*;
-use swc_common::{BytePos, FileName, SourceFile};
+use swc_common::BytePos;
 use std::fs;
 use std::collections::HashSet;
-use swc_common::{sync::Lrc, Spanned, source_map::Pos};
+use swc_common::{Spanned, source_map::Pos};
 use swc_ecma_parser::{Parser, StringInput, lexer::Lexer, EsSyntax};
 use swc_ecma_ast::*;
 use swc_ecma_visit::{Visit, VisitWith};
 use regex::Regex;
+use dprint_swc_ext::common::StartSourcePos;
 
 mod this_helper {
     pub const LOCATION_STR: &str = "location";
@@ -40,17 +42,15 @@ fn read_file_to_string(mut cx: FunctionContext) -> JsResult<JsString> {
 fn replace_js_code(mut cx: FunctionContext) -> JsResult<JsString> {
     let raw_js_prm = cx.argument::<JsString>(0)?;
     let raw_js_str = raw_js_prm.value(&mut cx).to_string();
-    
-    let source_file = SourceFile::new(
-        FileName::Custom("input.js".into()),
-        false,
-        FileName::Custom("input.js".into()),
-        raw_js_str.clone(),
-        BytePos::from_usize(0)
-    );
-    let rc_source_file = Lrc::new(source_file);
 
-    let string_input = StringInput::from(&*rc_source_file);
+    let start = StartSourcePos::START_SOURCE_POS;
+    let end = start + raw_js_str.len();
+
+    let string_input = StringInput::new(
+        &raw_js_str,
+        start.as_byte_pos(),
+        end.as_byte_pos()
+    );
 
     let lexer = Lexer::new(
         swc_ecma_parser::Syntax::Es(EsSyntax { ..Default::default() }),
